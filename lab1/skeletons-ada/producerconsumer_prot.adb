@@ -62,5 +62,3 @@ procedure ProducerConsumer_Prot is
 begin -- main task
    null;
 end ProducerConsumer_Prot;
-
-

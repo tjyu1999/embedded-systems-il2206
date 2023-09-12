@@ -13,4 +13,3 @@ package Buffer is
       Count: Integer range 0..Size := 0;
    end CircularBuffer;
 end Buffer;
-

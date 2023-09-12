@@ -9,4 +9,3 @@ package body Semaphores is
       entry Signal -- To be completed
    end CountingSemaphore;
 end Semaphores;
-

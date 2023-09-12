@@ -78,5 +78,3 @@ procedure ProducerConsumer_Rndzvs is
 begin -- main task
    null;
 end ProducerConsumer_Rndzvs;
-
-

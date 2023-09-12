@@ -11,4 +11,3 @@ package Semaphores is
       MaxCount : Natural := Max;
    end CountingSemaphore;
 end Semaphores;
-

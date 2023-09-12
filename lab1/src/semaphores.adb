@@ -2,7 +2,6 @@
 
 package body Semaphores is
    protected body CountingSemaphore is
-   
       entry Wait When Count > 0 is
          begin
          Count := Count - 1;
@@ -12,6 +11,5 @@ package body Semaphores is
          begin
          Count := Count + 1;
       end Signal;
-      
    end CountingSemaphore;
 end Semaphores;

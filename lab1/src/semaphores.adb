@@ -13,7 +13,7 @@ package body Semaphores is
       -- To be completed
       entry Signal When Count < MaxCount is
          begin
-         Count := Count + 1; --increment
+         Count := Count + 1; -- increment
       end Signal;
    end CountingSemaphore;
 end Semaphores;

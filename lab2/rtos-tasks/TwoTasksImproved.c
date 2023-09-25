@@ -45,15 +45,26 @@ void task1(void* pdata){
     while(1){ 
         char text1[] = "Hello from Task1\n";
         int i;
-
-        OSSemPend(semaphore1, 0, &err); // void OSSemPend(OS_EVENT *pevent, INT16U timeout, INT8U *perr);
         
+        OSSemPend(semaphore1, 0, &err); /* void OSSemPend(OS_EVENT *pevent, INT16U timeout, INT8U *perr);
+                                           used when a task wants exclusive access to a resource, and needs to synchronize its activities
+        
+                                           arg: pevent- a pointer to the semaphore
+                                           timeout- 
+                                           perr- a pointer to a variable used to hold an error code
+                                           return: none */
+                                           
         for(i = 0; i < strlen(text1); i++)
             putchar(text1[i]);
         
-        OSSemPost(semaphore2); // INT8U OSSemPost(OS_EVENT *pevent);
+        OSSemPost(semaphore2); /* INT8U OSSemPost(OS_EVENT *pevent);
+                          	  a semaphore is signaled by calling the function
+                          	  
+                                  arg: pevent- a pointer to the semaphore
+                                  return: an error code */
         
         // OSTimeDlyHMSM(0, 0, 0, 11);
+        
         /* Context Switch to next task
          * Task will go to the ready state
          * after the specified delay
@@ -99,7 +110,12 @@ void statisticTask(void* pdata){
 int main(void){
     printf("Lab 3 - Two Tasks\n");
     
-    semaphore1 = OSSemCreate(1); // OS_EVENT *OSSemCreate(INT16U value);
+    /* OS_EVENT *OSSemCreate(INT16U value);
+       create and initializes a semaphore
+       
+       arg: an initial value of the semaphore
+       return: a pointer to the event control block allocated to the semaphore */
+    semaphore1 = OSSemCreate(1); // binary semaphore
     semaphore2 = OSSemCreate(0);
     semaphore3 = OSSemCreate(0);
 

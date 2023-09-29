@@ -1,27 +1,26 @@
 // File: TwoTasks.c 
 
-#include <stdio.h>
-#include "includes.h"
-#include <string.h>
+# include <stdio.h>
+# include "includes.h"
+# include <string.h>
 
-#define DEBUG 1
+# define DEBUG 1
 
 /* Definition of Task Stacks */
 /* Stack grows from HIGH to LOW memory */
-#define   TASK_STACKSIZE       2048
+# define   TASK_STACKSIZE       2048
 OS_STK    task1_stk[TASK_STACKSIZE];
 OS_STK    task2_stk[TASK_STACKSIZE];
 OS_STK    stat_stk[TASK_STACKSIZE];
 
 // declare semaphore
 OS_EVENT *semaphore1;
-OS_EVENT *semaphore2; 
-OS_EVENT *semaphore3; 
+OS_EVENT *semaphore2;
 
 /* Definition of Task Priorities */
-#define TASK1_PRIORITY      6  // highest priority
-#define TASK2_PRIORITY      7
-#define TASK_STAT_PRIORITY 12  // lowest priority 
+# define TASK1_PRIORITY      6  // highest priority
+# define TASK2_PRIORITY      7
+# define TASK_STAT_PRIORITY 12  // lowest priority 
 
 void printStackSize(char* name, INT8U prio){
     INT8U err;
@@ -46,22 +45,10 @@ void task1(void* pdata){
         char text1[] = "Hello from Task1\n";
         int i;
         
-        OSSemPend(semaphore1, 0, &err); /* void OSSemPend(OS_EVENT *pevent, INT16U timeout, INT8U *perr);
-                                           used when a task wants exclusive access to a resource, and needs to synchronize its activities
-        
-                                           arg: pevent- a pointer to the semaphore
-                                           timeout- 
-                                           perr- a pointer to a variable used to hold an error code
-                                           return: none */
-                                           
+        OSSemPend(semaphore1, 0, &err);                                           
         for(i = 0; i < strlen(text1); i++)
             putchar(text1[i]);
-        
-        OSSemPost(semaphore2); /* INT8U OSSemPost(OS_EVENT *pevent);
-                          	  a semaphore is signaled by calling the function
-                          	  
-                                  arg: pevent- a pointer to the semaphore
-                                  return: an error code */
+        OSSemPost(semaphore2);
         
         // OSTimeDlyHMSM(0, 0, 0, 11);
         
@@ -81,11 +68,9 @@ void task2(void* pdata){
         int i;
 
         OSSemPend(semaphore2, 0, &err);
-        
         for(i = 0; i < strlen(text2); i++)
             putchar(text2[i]);
-            
-        OSSemPost(semaphore3);
+        OSSemPost(semaphore1);
         
         // OSTimeDlyHMSM(0, 0, 0, 4);
     }
@@ -93,16 +78,10 @@ void task2(void* pdata){
 
 /* Printing Statistics */
 void statisticTask(void* pdata){
-    INT8U err;
-
-    while(1){
-        OSSemPend(semaphore3, 0, &err);
-    
+    while(1){    
         printStackSize("Task1", TASK1_PRIORITY);
         printStackSize("Task2", TASK2_PRIORITY);
         printStackSize("StatisticTask", TASK_STAT_PRIORITY);
-        
-        OSSemPost(semaphore1);
     }
 }
 
@@ -115,12 +94,11 @@ int main(void){
        
        arg: an initial value of the semaphore
        return: a pointer to the event control block allocated to the semaphore */
-    semaphore1 = OSSemCreate(1); // binary semaphore
+    semaphore1 = OSSemCreate(1);
     semaphore2 = OSSemCreate(0);
-    semaphore3 = OSSemCreate(0);
 
-    OSTaskCreateExt
-      ( task1,                        // Pointer to task code
+    OSTaskCreateExt(
+        task1,                        // Pointer to task code
         NULL,                         // Pointer to argument passed to task
         &task1_stk[TASK_STACKSIZE-1], // Pointer to top of task stack
         TASK1_PRIORITY,               // Desired Task priority
@@ -132,8 +110,8 @@ int main(void){
         OS_TASK_OPT_STK_CLR           // Stack Cleared                                 
         );
 	   
-    OSTaskCreateExt
-      ( task2,                        // Pointer to task code
+    OSTaskCreateExt(
+        task2,                        // Pointer to task code
         NULL,                         // Pointer to argument passed to task
         &task2_stk[TASK_STACKSIZE-1], // Pointer to top of task stack
         TASK2_PRIORITY,               // Desired Task priority
@@ -146,8 +124,8 @@ int main(void){
         );  
 
     if(DEBUG == 1){
-        OSTaskCreateExt
-	  ( statisticTask,                // Pointer to task code
+        OSTaskCreateExt(
+            statisticTask,                // Pointer to task code
 	    NULL,                         // Pointer to argument passed to task
 	    &stat_stk[TASK_STACKSIZE-1],  // Pointer to top of task stack
 	    TASK_STAT_PRIORITY,           // Desired Task priority

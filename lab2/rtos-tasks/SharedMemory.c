@@ -22,12 +22,7 @@ OS_EVENT *semaphore2;
 # define TASK2_PRIORITY      7
 # define TASK_STAT_PRIORITY 12  // lowest priority
 
-int task1_state = 1;
-int task2_state = 0;
-
-void print_task_state(INT8U task_id, INT8U task_state){
-    printf("Task %d - State %d\n", task_id - 1, task_state);
-}
+int val = 1;
 
 void printStackSize(char* name, INT8U prio){
     INT8U err;
@@ -50,11 +45,14 @@ void task1(void* pdata){
 
     while(1){        
         OSSemPend(semaphore1, 0, &err);
-        task1_state = 1 - task1_state;
-        task2_state = task1_state;
-        print_task_state(1, task1_state);
-        print_task_state(2, task2_state);
+        printf("Sending   :  %d\n", val);
         OSSemPost(semaphore2);
+        
+        OSSemPend(semaphore1, 0, &err);
+        printf("Receiving : %d\n", val);
+        val = -val;
+        val++;
+        OSSemPost(semaphore1);
         
         // OSTimeDlyHMSM(0, 0, 0, 11);
         
@@ -71,10 +69,7 @@ void task2(void* pdata){
 
     while(1){
         OSSemPend(semaphore2, 0, &err);
-        task2_state = 1 - task2_state;
-        task1_state = task2_state;
-        print_task_state(2, task2_state);
-        print_task_state(1, task1_state);
+        val = -val;
         OSSemPost(semaphore1);
         
         // OSTimeDlyHMSM(0, 0, 0, 4);
@@ -83,8 +78,6 @@ void task2(void* pdata){
 
 /* Printing Statistics */
 void statisticTask(void* pdata){
-    INT8U err;
-
     while(1){
         printStackSize("Task1", TASK1_PRIORITY);
         printStackSize("Task2", TASK2_PRIORITY);
@@ -146,5 +139,5 @@ int main(void){
     }  
 
     OSStart();
-    return 0;
+    return 0;  
 }

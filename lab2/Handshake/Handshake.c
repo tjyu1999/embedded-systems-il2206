@@ -21,13 +21,6 @@ OS_EVENT *semaphore2;
 # define TASK2_PRIORITY      7
 # define TASK_STAT_PRIORITY 12  // lowest priority
 
-int task1_state = 1;
-int task2_state = 0;
-
-void print_task_state(INT8U task_id, INT8U task_state){
-    printf("Task %d - State %d\n", task_id - 1, task_state);
-}
-
 void printStackSize(char* name, INT8U prio){
     INT8U err;
     OS_STK_DATA stk_data;
@@ -46,28 +39,40 @@ void printStackSize(char* name, INT8U prio){
 /* Prints a message and sleeps for given time interval */
 void task1(void* pdata){
     INT8U err;
-
-    while(1){        
+    int state = 0;
+    
+    while(1){
         OSSemPend(semaphore1, 0, &err);
-        task1_state = 1 - task1_state;
-        task2_state = task1_state;
-        print_task_state(1, task1_state);
-        print_task_state(2, task2_state);
-        OSSemPost(semaphore2);
+
+        while(1){
+            printf("Task 0 - State %d\n", state);
+            if(state == 0){
+                state = 1;
+                OSSemPost(semaphore2);
+                break;
+            }
+            else state = 0;
+        }
     }
 }
 
 /* Prints a message and sleeps for given time interval */
 void task2(void* pdata){
     INT8U err;
+    int state = 0;
 
     while(1){
         OSSemPend(semaphore2, 0, &err);
-        task2_state = 1 - task2_state;
-        task1_state = task2_state;
-        print_task_state(2, task2_state);
-        print_task_state(1, task1_state);
-        OSSemPost(semaphore1);
+
+        while(1){
+            printf("Task 1 - State %d\n", state);
+            if(state == 1){
+                state = 0;
+                OSSemPost(semaphore1);
+                break;
+            }
+            else state = 1;
+        }
     }
 }
 

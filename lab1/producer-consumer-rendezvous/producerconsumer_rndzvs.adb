@@ -58,11 +58,15 @@ procedure ProducerConsumer_Rndzvs is
       
    task body Producer is
       Next : Time;
+      Val : Integer;
    begin
       Next := Clock;
       for I in 1..N loop	
          -- => Complete code: Write to X
          Buffer.Append(I);
+         Val := I;
+         Put("Produced: ");
+         Put_Line(Integer'Image(Val));
          
          -- Next 'Release' in 50..250ms
          Next := Next + Milliseconds(Random(G));
@@ -72,13 +76,14 @@ procedure ProducerConsumer_Rndzvs is
 
    task body Consumer is
       Next : Time;
-      X : Integer;
+      Val : Integer;
    begin
       Next := Clock;
       for I in 1..N loop
          -- Complete Code: Read from X
-         Buffer.Take(X);
-         Put_Line(Integer'Image(X));
+         Buffer.Take(Val);
+         Put("Consumed: ");
+         Put_Line(Integer'Image(Val));
          
          -- Next 'Release' in 50..250ms
          Next := Next + Milliseconds(Random(G));

@@ -30,11 +30,15 @@ procedure ProducerConsumer_Prot is
 
    task body Producer is
       Next : Time;
+      Val : Integer;
    begin
       Next := Clock;
       for I in 1..N loop
          -- ==> Complete code: Write to Buffer
          B.Put(I);
+         Val := I;
+         Put("Produced: ");
+         Put_Line(Integer'Image(Val));
 
          -- Next 'Release' in 50..250ms
          Next := Next + Milliseconds(Random(G));
@@ -44,14 +48,15 @@ procedure ProducerConsumer_Prot is
 
    task body Consumer is
       Next : Time;
-      X : Integer;
+      Val : Integer;
    begin
       Next := Clock;
       for I in 1..N loop
          -- Read from X	
          -- ==> Complete code: Read from Buffer
-         B.Get(X);
-         Put_Line(Integer'Image(X));
+         B.Get(Val);
+         Put("Consumed: ");
+         Put_Line(Integer'Image(Val));
 
          -- Next 'Release' in 50..250mss
          Next := Next + Milliseconds(Random(G));

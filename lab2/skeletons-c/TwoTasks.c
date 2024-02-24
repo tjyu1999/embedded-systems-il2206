@@ -1,44 +1,38 @@
 // File: TwoTasks.c 
 
-#include <stdio.h>
-#include "includes.h"
-#include <string.h>
+# include <stdio.h>
+# include "includes.h"
+# include <string.h>
 
-#define DEBUG 1
+# define DEBUG 1
 
 /* Definition of Task Stacks */
 /* Stack grows from HIGH to LOW memory */
-#define   TASK_STACKSIZE       2048
-OS_STK    task1_stk[TASK_STACKSIZE];
-OS_STK    task2_stk[TASK_STACKSIZE];
-OS_STK    stat_stk[TASK_STACKSIZE];
+# define   TASK_STACKSIZE       2048
+OS_STK     task1_stk[TASK_STACKSIZE];
+OS_STK     task2_stk[TASK_STACKSIZE];
+OS_STK     stat_stk[TASK_STACKSIZE];
 
 /* Definition of Task Priorities */
-#define TASK1_PRIORITY      6  // highest priority
-#define TASK2_PRIORITY      7
-#define TASK_STAT_PRIORITY 12  // lowest priority 
+# define TASK1_PRIORITY      6  // highest priority
+# define TASK2_PRIORITY      7
+# define TASK_STAT_PRIORITY 12  // lowest priority 
 
-void printStackSize(char* name, INT8U prio) 
-{
-  INT8U err;
-  OS_STK_DATA stk_data;
+void printStackSize(char* name, INT8U prio){
+    INT8U err;
+    OS_STK_DATA stk_data;
     
-  err = OSTaskStkChk(prio, &stk_data);
-  if (err == OS_NO_ERR) {
-    if (DEBUG == 1)
-      printf("%s (priority %d) - Used: %d; Free: %d\n", 
-	     name, prio, stk_data.OSUsed, stk_data.OSFree);
-  }
-  else
-    {
-      if (DEBUG == 1)
-	printf("Stack Check Error!\n");    
+    err = OSTaskStkChk(prio, &stk_data);
+    if(err == OS_NO_ERR){
+        if(DEBUG == 1) printf("%s (priority %d) - Used: %d; Free: %d\n", name, prio, stk_data.OSUsed, stk_data.OSFree);
+    }
+    else{
+        if(DEBUG == 1) printf("Stack Check Error!\n");    
     }
 }
 
 /* Prints a message and sleeps for given time interval */
-void task1(void* pdata)
-{
+void task1(void* pdata){
   while (1)
     { 
       char text1[] = "Hello from Task1\n";

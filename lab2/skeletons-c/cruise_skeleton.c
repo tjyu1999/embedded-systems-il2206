@@ -18,67 +18,64 @@
  *   quite readable. This modification is easily motivated and accepted by the course
  *   staff.
  */
-#include <stdio.h>
-#include "system.h"
-#include "includes.h"
-#include "altera_avalon_pio_regs.h"
-#include "sys/alt_irq.h"
-#include "sys/alt_alarm.h"
 
-#define DEBUG 1
+# include <stdio.h>
+# include "system.h"
+# include "includes.h"
+# include "altera_avalon_pio_regs.h"
+# include "sys/alt_irq.h"
+# include "sys/alt_alarm.h"
 
-#define HW_TIMER_PERIOD 100 /* 100ms */
+# define DEBUG 1
+
+# define HW_TIMER_PERIOD 100 /* 100ms */
 
 /* Button Patterns */
+# define GAS_PEDAL_FLAG      0x08
+# define BRAKE_PEDAL_FLAG    0x04
+# define CRUISE_CONTROL_FLAG 0x02
 
-#define GAS_PEDAL_FLAG      0x08
-#define BRAKE_PEDAL_FLAG    0x04
-#define CRUISE_CONTROL_FLAG 0x02
 /* Switch Patterns */
-
-#define TOP_GEAR_FLAG       0x00000002
-#define ENGINE_FLAG         0x00000001
+# define TOP_GEAR_FLAG       0x00000002
+# define ENGINE_FLAG         0x00000001
 
 /* LED Patterns */
+# define LED_RED_0 0x00000001 // Engine
+# define LED_RED_1 0x00000002 // Top Gear
 
-#define LED_RED_0 0x00000001 // Engine
-#define LED_RED_1 0x00000002 // Top Gear
-
-#define LED_GREEN_0 0x0001 // Cruise Control activated
-#define LED_GREEN_2 0x0002 // Cruise Control Button
-#define LED_GREEN_4 0x0010 // Brake Pedal
-#define LED_GREEN_6 0x0040 // Gas Pedal
+# define LED_GREEN_0 0x0001 // Cruise Control activated
+# define LED_GREEN_2 0x0002 // Cruise Control Button
+# define LED_GREEN_4 0x0010 // Brake Pedal
+# define LED_GREEN_6 0x0040 // Gas Pedal
 
 /*
  * Definition of Tasks
  */
 
-#define TASK_STACKSIZE 2048
+# define TASK_STACKSIZE 2048
 
 OS_STK StartTask_Stack[TASK_STACKSIZE]; 
 OS_STK ControlTask_Stack[TASK_STACKSIZE]; 
 OS_STK VehicleTask_Stack[TASK_STACKSIZE];
 
 // Task Priorities
-
-#define STARTTASK_PRIO     5
-#define VEHICLETASK_PRIO  10
-#define CONTROLTASK_PRIO  12
+# define STARTTASK_PRIO     5
+# define VEHICLETASK_PRIO  10
+# define CONTROLTASK_PRIO  12
 
 // Task Periods
-
-#define CONTROL_PERIOD  300
-#define VEHICLE_PERIOD  300
+# define CONTROL_PERIOD  300
+# define VEHICLE_PERIOD  300
 
 /*
  * Definition of Kernel Objects 
  */
 
 // Mailboxes
-OS_EVENT *Mbox_Throttle;
-OS_EVENT *Mbox_Velocity;
-OS_EVENT *Mbox_Brake;
-OS_EVENT *Mbox_Engine;
+OS_EVENT* Mbox_Throttle;
+OS_EVENT* Mbox_Velocity;
+OS_EVENT* Mbox_Brake;
+OS_EVENT* Mbox_Engine;
 
 // Semaphores
 
@@ -89,7 +86,6 @@ OS_EVENT *Mbox_Engine;
  */
 enum active {on = 2, off = 1};
 
-
 /*
  * Global variables
  */
@@ -97,84 +93,71 @@ int delay; // Delay of HW-timer
 INT16U led_green = 0; // Green LEDs
 INT32U led_red = 0;   // Red LEDs
 
-
 /*
  * Helper functions
  */
 
-int buttons_pressed(void)
-{
-  return ~IORD_ALTERA_AVALON_PIO_DATA(D2_PIO_KEYS4_BASE);    
-}
+int buttons_pressed(void) return ~IORD_ALTERA_AVALON_PIO_DATA(D2_PIO_KEYS4_BASE);    
 
-int switches_pressed(void)
-{
-  return IORD_ALTERA_AVALON_PIO_DATA(DE2_PIO_TOGGLES18_BASE);    
-}
+int switches_pressed(void) return IORD_ALTERA_AVALON_PIO_DATA(DE2_PIO_TOGGLES18_BASE);
 
 /*
  * ISR for HW Timer
  */
-alt_u32 alarm_handler(void* context)
-{
-  OSTmrSignal(); /* Signals a 'tick' to the SW timers */
-
-  return delay;
+alt_u32 alarm_handler(void* context){
+    OSTmrSignal(); /* Signals a 'tick' to the SW timers */
+    return delay;
 }
 
 static int b2sLUT[] = {0x40, //0
-  0x79, //1
-  0x24, //2
-  0x30, //3
-  0x19, //4
-  0x12, //5
-  0x02, //6
-  0x78, //7
-  0x00, //8
-  0x18, //9
-  0x3F, //-
+                       0x79, //1
+                       0x24, //2
+                       0x30, //3
+                       0x19, //4
+                       0x12, //5
+                       0x02, //6
+                       0x78, //7
+                       0x00, //8
+                       0x18, //9
+                       0x3F, //-
 };
 
 /*
  * convert int to seven segment display format
  */
-int int2seven(int inval){
-  return b2sLUT[inval];
-}
+int int2seven(int inval) return b2sLUT[inval];
 
 /*
  * output current velocity on the seven segement display
  */
 void show_velocity_on_sevenseg(INT8S velocity){
-  int tmp = velocity;
-  int out;
-  INT8U out_high = 0;
-  INT8U out_low = 0;
-  INT8U out_sign = 0;
+    int tmp = velocity;
+    int out;
+    INT8U out_high = 0;
+    INT8U out_low = 0;
+    INT8U out_sign = 0;
 
-  if(velocity < 0){
-    out_sign = int2seven(10);
-    tmp *= -1;
-  }else{
-    out_sign = int2seven(0);
-  }
+    if(velocity < 0){
+        out_sign = int2seven(10);
+        tmp *= -1;
+    }
+    else out_sign = int2seven(0);
 
-  out_high = int2seven(tmp / 10);
-  out_low = int2seven(tmp - (tmp/10) * 10);
+    out_high = int2seven(tmp / 10);
+    out_low = int2seven(tmp - (tmp/10) * 10);
 
-  out = int2seven(0) << 21 |
-    out_sign << 14 |
-    out_high << 7  |
-    out_low;
-  IOWR_ALTERA_AVALON_PIO_DATA(DE2_PIO_HEX_LOW28_BASE,out);
+    out = int2seven(0) << 21 |
+          out_sign << 14 |
+          out_high << 7  |
+          out_low;
+    IOWR_ALTERA_AVALON_PIO_DATA(DE2_PIO_HEX_LOW28_BASE,out);
 }
 
 /*
  * shows the target velocity on the seven segment display (HEX5, HEX4)
  * when the cruise control is activated (0 otherwise)
  */
-void show_target_velocity(INT8U target_vel)
-{
+void show_target_velocity(INT8U target_vel){
 }
 
 /*
@@ -186,8 +169,7 @@ void show_target_velocity(INT8U target_vel)
  * LEDR13: [1600m, 2000m)
  * LEDR12: [2000m, 2400m]
  */
-void show_position(INT16U position)
-{
+void show_position(INT16U position){
 }
 
 /*
@@ -198,37 +180,35 @@ void show_position(INT16U position)
  * Therefore, if left one, it will stably stop as the velocity converges to zero on a flat surface.
  * You can prove that easily via basic LTI systems methods.
  */
-void VehicleTask(void* pdata)
-{ 
-  // constants that should not be modified
-  const unsigned int wind_factor = 1;
-  const unsigned int brake_factor = 4;
-  const unsigned int gravity_factor = 2;
-  // variables relevant to the model and its simulation on top of the RTOS
-  INT8U err;  
-  void* msg;
-  INT8U* throttle; 
-  INT16S acceleration;  
-  INT16U position = 0; 
-  INT16S velocity = 0; 
-  enum active brake_pedal = off;
-  enum active engine = off;
+void VehicleTask(void* pdata){ 
+    // constants that should not be modified
+    const unsigned int wind_factor = 1;
+    const unsigned int brake_factor = 4;
+    const unsigned int gravity_factor = 2;
+    
+    // variables relevant to the model and its simulation on top of the RTOS
+    INT8U err;  
+    void* msg;
+    INT8U* throttle; 
+    INT16S acceleration;  
+    INT16U position = 0; 
+    INT16S velocity = 0; 
+    enum active brake_pedal = off;
+    enum active engine = off;
 
-  printf("Vehicle task created!\n");
+    printf("Vehicle task created!\n");
 
-  while(1)
-  {
-    err = OSMboxPost(Mbox_Velocity, (void *) &velocity);
+    while(1){
+        err = OSMboxPost(Mbox_Velocity, (void*) &velocity);
 
-    OSTimeDlyHMSM(0,0,0,VEHICLE_PERIOD); 
+        OSTimeDlyHMSM(0,0,0,VEHICLE_PERIOD);
 
-    /* Non-blocking read of mailbox: 
-       - message in mailbox: update throttle
-       - no message:         use old throttle
-       */
-    msg = OSMboxPend(Mbox_Throttle, 1, &err); 
-    if (err == OS_NO_ERR) 
-      throttle = (INT8U*) msg;
+        /* Non-blocking read of mailbox: 
+           - message in mailbox: update throttle
+           - no message:         use old throttle
+        */
+        msg = OSMboxPend(Mbox_Throttle, 1, &err); 
+        if (err == OS_NO_ERR) throttle = (INT8U*) msg;
     /* Same for the brake signal that bypass the control law */
     msg = OSMboxPend(Mbox_Brake, 1, &err); 
     if (err == OS_NO_ERR) 

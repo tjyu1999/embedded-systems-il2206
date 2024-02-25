@@ -8,18 +8,18 @@
 
 /* Definition of Task Stacks */
 /* Stack grows from HIGH to LOW memory */
-# define   TASK_STACKSIZE       2048
-OS_STK    task1_stk[TASK_STACKSIZE];
-OS_STK    task2_stk[TASK_STACKSIZE];
-OS_STK    stat_stk[TASK_STACKSIZE];
+# define TASK_STACKSIZE 2048
+OS_STK task1_stk[TASK_STACKSIZE];
+OS_STK task2_stk[TASK_STACKSIZE];
+OS_STK stat_stk[TASK_STACKSIZE];
 
-OS_EVENT *semaphore1;
-OS_EVENT *semaphore2;
+OS_EVENT* semaphore1;
+OS_EVENT* semaphore2;
 
 /* Definition of Task Priorities */
 # define TASK1_PRIORITY      6  // highest priority
 # define TASK2_PRIORITY      7
-# define TASK_STAT_PRIORITY 12  // lowest priority 
+# define TASK_STAT_PRIORITY  12 // lowest priority 
 
 void printStackSize(char* name, INT8U prio){
     INT8U err;
@@ -27,12 +27,10 @@ void printStackSize(char* name, INT8U prio){
     
     err = OSTaskStkChk(prio, &stk_data);
     if(err == OS_NO_ERR){
-        if(DEBUG == 1)
-            printf("%s (priority %d) - Used: %d; Free: %d\n", name, prio, (int) stk_data.OSUsed, (int) stk_data.OSFree);
+        if(DEBUG == 1) printf("%s (priority %d) - Used: %d; Free: %d\n", name, prio, (int) stk_data.OSUsed, (int) stk_data.OSFree);
     }
     else{
-        if(DEBUG == 1)
-	    printf("Stack Check Error!\n");    
+        if(DEBUG == 1) printf("Stack Check Error!\n");    
     }
 }
 
@@ -42,11 +40,9 @@ void task1(void* pdata){
 
     while(1){ 
         char text1[] = "Hello from Task1\n";
-        int i;
         
         OSSemPend(semaphore1, 0, &err);                                           
-        for(i = 0; i < strlen(text1); i++)
-            putchar(text1[i]);
+        for(int i = 0; i < strlen(text1); i++) putchar(text1[i]);
         OSSemPost(semaphore2);
     }
 }
@@ -57,11 +53,9 @@ void task2(void* pdata){
 
     while(1){ 
         char text2[] = "Hello from Task2\n";
-        int i;
-
+        
         OSSemPend(semaphore2, 0, &err);
-        for(i = 0; i < strlen(text2); i++)
-            putchar(text2[i]);
+        for(int i = 0; i < strlen(text2); i++) putchar(text2[i]);
         OSSemPost(semaphore1);
     }
 }
@@ -82,47 +76,42 @@ int main(void){
     semaphore1 = OSSemCreate(1);
     semaphore2 = OSSemCreate(0);
 
-    OSTaskCreateExt(
-        task1,                        // Pointer to task code
-        NULL,                         // Pointer to argument passed to task
-        &task1_stk[TASK_STACKSIZE-1], // Pointer to top of task stack
-        TASK1_PRIORITY,               // Desired Task priority
-        TASK1_PRIORITY,               // Task ID
-        &task1_stk[0],                // Pointer to bottom of task stack
-        TASK_STACKSIZE,               // Stacksize
-        NULL,                         // Pointer to user supplied memory (not needed)
-        OS_TASK_OPT_STK_CHK |         // Stack Checking enabled 
-        OS_TASK_OPT_STK_CLR           // Stack Cleared                                 
-        );
+    OSTaskCreateExt(task1,                        // Pointer to task code
+                    NULL,                         // Pointer to argument passed to task
+                    &task1_stk[TASK_STACKSIZE-1], // Pointer to top of task stack
+                    TASK1_PRIORITY,               // Desired Task priority
+                    TASK1_PRIORITY,               // Task ID
+                    &task1_stk[0],                // Pointer to bottom of task stack
+                    TASK_STACKSIZE,               // Stacksize
+                    NULL,                         // Pointer to user supplied memory (not needed)
+                    OS_TASK_OPT_STK_CHK |         // Stack Checking enabled 
+                    OS_TASK_OPT_STK_CLR);         // Stack Cleared
+        
 	   
-    OSTaskCreateExt(
-        task2,                        // Pointer to task code
-        NULL,                         // Pointer to argument passed to task
-        &task2_stk[TASK_STACKSIZE-1], // Pointer to top of task stack
-        TASK2_PRIORITY,               // Desired Task priority
-        TASK2_PRIORITY,               // Task ID
-        &task2_stk[0],                // Pointer to bottom of task stack
-        TASK_STACKSIZE,               // Stacksize
-        NULL,                         // Pointer to user supplied memory (not needed)
-        OS_TASK_OPT_STK_CHK |         // Stack Checking enabled 
-        OS_TASK_OPT_STK_CLR           // Stack Cleared                       
-        );  
+    OSTaskCreateExt(task2,                        // Pointer to task code
+                    NULL,                         // Pointer to argument passed to task
+                    &task2_stk[TASK_STACKSIZE-1], // Pointer to top of task stack
+                    TASK2_PRIORITY,               // Desired Task priority
+                    TASK2_PRIORITY,               // Task ID
+                    &task2_stk[0],                // Pointer to bottom of task stack
+                    TASK_STACKSIZE,               // Stacksize
+                    NULL,                         // Pointer to user supplied memory (not needed)
+                    OS_TASK_OPT_STK_CHK |         // Stack Checking enabled 
+                    OS_TASK_OPT_STK_CLR);         // Stack Cleared
 
     if(DEBUG == 1){
-        OSTaskCreateExt(
-            statisticTask,                // Pointer to task code
-	        NULL,                         // Pointer to argument passed to task
-	        &stat_stk[TASK_STACKSIZE-1],  // Pointer to top of task stack
-	        TASK_STAT_PRIORITY,           // Desired Task priority
-	        TASK_STAT_PRIORITY,           // Task ID
-	        &stat_stk[0],                 // Pointer to bottom of task stack
-	        TASK_STACKSIZE,               // Stacksize
-	        NULL,                         // Pointer to user supplied memory (not needed)
-	        OS_TASK_OPT_STK_CHK |         // Stack Checking enabled 
-	        OS_TASK_OPT_STK_CLR           // Stack Cleared                              
-	    );
-    }  
-
+        OSTaskCreateExt(statisticTask,                // Pointer to task code
+                        NULL,                         // Pointer to argument passed to task
+	                &stat_stk[TASK_STACKSIZE-1],  // Pointer to top of task stack
+	                TASK_STAT_PRIORITY,           // Desired Task priority
+	                TASK_STAT_PRIORITY,           // Task ID
+	                &stat_stk[0],                 // Pointer to bottom of task stack
+	                TASK_STACKSIZE,               // Stacksize
+	                NULL,                         // Pointer to user supplied memory (not needed)
+	                OS_TASK_OPT_STK_CHK |         // Stack Checking enabled 
+	                OS_TASK_OPT_STK_CLR);         // Stack Cleared
+    }
+    
     OSStart();
     return 0;
 }

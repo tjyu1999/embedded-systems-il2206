@@ -36,12 +36,12 @@
 # define CRUISE_CONTROL_FLAG 0x02
 
 /* Switch Patterns */
-# define TOP_GEAR_FLAG       0x00000002
-# define ENGINE_FLAG         0x00000001
+# define TOP_GEAR_FLAG 0x00000002
+# define ENGINE_FLAG   0x00000001
 
 /* LED Patterns */
-# define LED_RED_0 0x00000001 // Engine
-# define LED_RED_1 0x00000002 // Top Gear
+# define LED_RED_0   0x00000001 // Engine
+# define LED_RED_1   0x00000002 // Top Gear
 
 # define LED_GREEN_0 0x0001 // Cruise Control activated
 # define LED_GREEN_2 0x0002 // Cruise Control Button

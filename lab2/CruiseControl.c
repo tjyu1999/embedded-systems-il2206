@@ -147,7 +147,7 @@ enum active switch9 = off;
 /*
  * Global variables
  */
-int delay; // Delay of HW-timer 
+int delay;            // Delay of HW-timer 
 INT16U led_green = 0; // Green LEDs
 INT32U led_red = 0;   // Red LEDs
 

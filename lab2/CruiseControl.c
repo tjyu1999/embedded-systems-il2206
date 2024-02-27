@@ -469,64 +469,28 @@ void SwitchIOTask(void* pdata){
         else TOP_GEAR = on;
         
         // sw4
-        if(switches & SWITCH_4){
-            switch4 = on;
-            utilization[5] = 2;
-        }
-        else{
-            switch4 = off;
-            utilization[5] = 0;
-        }
+        if(switches & SWITCH_4) switch4 = on; utilization[5] = 2;
+        else switch4 = off; utilization[5] = 0;
         
         // sw5
-        if(switches & SWITCH_5){
-            switch5 = on;
-            utilization[4] = 4;
-        }
-        else{
-            switch5 = off;
-            utilization[4] = 0;
-        }
+        if(switches & SWITCH_5) switch5 = on; utilization[4] = 4;
+        else switch5 = off; utilization[4] = 0;
         
         // sw6
-        if(switches & SWITCH_6){
-            switch6 = on;
-            utilization[3] = 8;
-        }
-        else{
-            switch6 = off;
-            utilization[3] = 0;
-        }
+        if(switches & SWITCH_6) switch6 = on; utilization[3] = 8;
+        else switch6 = off; utilization[3] = 0;
 
         // sw7
-        if(switches & SWITCH_7){
-            switch7 = on;
-            utilization[2] = 16;
-        }
-        else{
-            switch7 = off;
-            utilization[2] = 0;
-        }
+        if(switches & SWITCH_7) switch7 = on; utilization[2] = 16;
+        else switch7 = off; utilization[2] = 0;
         
         // sw8
-        if(switches & SWITCH_8){
-            switch8 = on;
-            utilization[1] = 32;
-        }
-        else{
-            switch8 = off;
-            utilization[1] = 0;
-        }
+        if(switches & SWITCH_8) switch8 = on; utilization[1] = 32;
+        else switch8 = off; utilization[1] = 0;
         
         // sw9
-        if(switches & SWITCH_9){
-            switch9 = on;
-            utilization[0] = 64;
-        }
-        else{
-            switch9 = off;
-            utilization[0] = 0;
-        }
+        if(switches & SWITCH_9) switch9 = on; utilization[0] = 64;
+        else switch9 = off; utilization[0] = 0;
     }
 }
 

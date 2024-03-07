@@ -288,7 +288,7 @@ void VehicleTask(void *pdata){
     // variables relevant to the model and its simulation on top of the RTOS
     INT8U err;
     void *msg;
-    INT8U* throttle;
+    INT8U *throttle;
     INT16S acceleration;
     INT16U position = 0;
     INT16S velocity = 0;

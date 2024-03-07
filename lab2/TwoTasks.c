@@ -18,7 +18,7 @@ OS_STK   stat_stk[TASK_STACKSIZE];
 # define TASK2_PRIORITY      7
 # define TASK_STAT_PRIORITY 12  // lowest priority 
 
-void printStackSize(char* name, INT8U prio){
+void printStackSize(char *name, INT8U prio){
     INT8U err;
     OS_STK_DATA stk_data;
     
@@ -32,7 +32,7 @@ void printStackSize(char* name, INT8U prio){
 }
 
 /* Prints a message and sleeps for given time interval */
-void task1(void* pdata){
+void task1(void *pdata){
     while(1){ 
         char text1[] = "Hello from Task1\n";
         for(int i = 0; i < strlen(text1); i++) putchar(text1[i]);
@@ -44,7 +44,7 @@ void task1(void* pdata){
 }
 
 /* Prints a message and sleeps for given time interval */
-void task2(void* pdata){
+void task2(void *pdata){
     while(1){ 
         char text2[] = "Hello from Task2\n";
         for(int i = 0; i < strlen(text2); i++) putchar(text2[i]);
@@ -53,7 +53,7 @@ void task2(void* pdata){
 }
 
 /* Printing Statistics */
-void statisticTask(void* pdata){
+void statisticTask(void *pdata){
     while(1){
         printStackSize("Task1", TASK1_PRIORITY);
         printStackSize("Task2", TASK2_PRIORITY);

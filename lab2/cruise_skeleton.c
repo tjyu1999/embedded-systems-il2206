@@ -70,10 +70,10 @@ OS_STK VehicleTask_Stack[TASK_STACKSIZE];
  */
 
 // Mailboxes
-OS_EVENT* Mbox_Throttle;
-OS_EVENT* Mbox_Velocity;
-OS_EVENT* Mbox_Brake;
-OS_EVENT* Mbox_Engine;
+OS_EVENT *Mbox_Throttle;
+OS_EVENT *Mbox_Velocity;
+OS_EVENT *Mbox_Brake;
+OS_EVENT *Mbox_Engine;
 
 // Semaphores
 
@@ -82,7 +82,10 @@ OS_EVENT* Mbox_Engine;
 /*
  * Types
  */
-enum active{on = 2, off = 1};
+enum active{
+    on = 2,
+    off = 1
+};
 
 /*
  * Global variables
@@ -95,14 +98,18 @@ INT32U led_red = 0;   // Red LEDs
  * Helper functions
  */
 
-int buttons_pressed(void) return ~IORD_ALTERA_AVALON_PIO_DATA(D2_PIO_KEYS4_BASE);
+int buttons_pressed(void){
+    return ~IORD_ALTERA_AVALON_PIO_DATA(D2_PIO_KEYS4_BASE);
+}
 
-int switches_pressed(void) return IORD_ALTERA_AVALON_PIO_DATA(DE2_PIO_TOGGLES18_BASE);
+int switches_pressed(void){
+    return IORD_ALTERA_AVALON_PIO_DATA(DE2_PIO_TOGGLES18_BASE);
+}
 
 /*
  * ISR for HW Timer
  */
-alt_u32 alarm_handler(void* context){
+alt_u32 alarm_handler(void *context){
     OSTmrSignal(); /* Signals a 'tick' to the SW timers */
     return delay;
 }
@@ -122,7 +129,9 @@ static int b2sLUT[] = {0x40,  //0
 /*
  * convert int to seven segment display format
  */
-int int2seven(int inval) return b2sLUT[inval];
+int int2seven(int inval){
+    return b2sLUT[inval];
+}
 
 /*
  * output current velocity on the seven segement display
@@ -177,7 +186,7 @@ void show_position(INT16U position){
  * Therefore, if left one, it will stably stop as the velocity converges to zero on a flat surface.
  * You can prove that easily via basic LTI systems methods.
  */
-void VehicleTask(void* pdata){ 
+void VehicleTask(void *pdata){ 
     // constants that should not be modified
     const unsigned int wind_factor = 1;
     const unsigned int brake_factor = 4;
@@ -185,7 +194,7 @@ void VehicleTask(void* pdata){
 
     // variables relevant to the model and its simulation on top of the RTOS
     INT8U err;  
-    void* msg;
+    void *msg;
     INT8U* throttle; 
     INT16S acceleration;  
     INT16U position = 0; 
@@ -196,7 +205,7 @@ void VehicleTask(void* pdata){
     printf("Vehicle task created!\n");
 
     while(1){
-        err = OSMboxPost(Mbox_Velocity, (void *) &velocity);
+        err = OSMboxPost(Mbox_Velocity, (void*)&velocity);
 
         OSTimeDlyHMSM(0, 0, 0, VEHICLE_PERIOD); 
 
@@ -251,11 +260,11 @@ void VehicleTask(void* pdata){
  * The task 'ControlTask' is the main task of the application. It reacts
  * on sensors and generates responses.
  */
-void ControlTask(void* pdata){
+void ControlTask(void *pdata){
     INT8U err;
     INT8U throttle = 40; /* Value between 0 and 80, which is interpreted as between 0.0V and 8.0V */
-    void* msg;
-    INT16S* current_velocity;
+    void *msg;
+    INT16S *current_velocity;
 
     enum active gas_pedal = off;
     enum active top_gear = off;
@@ -265,7 +274,7 @@ void ControlTask(void* pdata){
 
     while(1){
         msg = OSMboxPend(Mbox_Velocity, 0, &err);
-        current_velocity = (INT16S*) msg;
+        current_velocity = (INT16S*)msg;
 
         // Here you can use whatever technique or algorithm that you prefer to control
         // the velocity via the throttle. There are no right and wrong answer to this controller, so
@@ -278,7 +287,7 @@ void ControlTask(void* pdata){
         //
         // If your control algorithm/technique needs them in order to function. 
 
-        err = OSMboxPost(Mbox_Throttle, (void*) &throttle);
+        err = OSMboxPost(Mbox_Throttle, (void*)&throttle);
         OSTimeDlyHMSM(0, 0, 0, CONTROL_PERIOD);
     }
 }
@@ -287,7 +296,7 @@ void ControlTask(void* pdata){
  * The task 'StartTask' creates all other tasks kernel objects and
  * deletes itself afterwards.
  */ 
-void StartTask(void* pdata){
+void StartTask(void *pdata){
     INT8U err;
     void* context;
     static alt_alarm alarm; /* Is needed for timer ISR function */
@@ -309,11 +318,10 @@ void StartTask(void* pdata){
      * Creation of Kernel Objects
      */
 
-    // Mailboxes
-    Mbox_Throttle = OSMboxCreate((void*) 0); /* Empty Mailbox - Throttle */
-    Mbox_Velocity = OSMboxCreate((void*) 0); /* Empty Mailbox - Velocity */
-    Mbox_Brake = OSMboxCreate((void*) 1);    /* Empty Mailbox - Velocity */
-    Mbox_Engine = OSMboxCreate((void*) 1);   /* Empty Mailbox - Engine */
+    Mbox_Throttle = OSMboxCreate((void*)0); /* Empty Mailbox - Throttle */
+    Mbox_Velocity = OSMboxCreate((void*)0); /* Empty Mailbox - Velocity */
+    Mbox_Brake = OSMboxCreate((void*)1);    /* Empty Mailbox - Velocity */
+    Mbox_Engine = OSMboxCreate((void*)1);   /* Empty Mailbox - Engine */
 
     /*
      * Create statistics task
@@ -328,9 +336,9 @@ void StartTask(void* pdata){
                           &ControlTask_Stack[TASK_STACKSIZE - 1], // Pointer to top of task stack
                           CONTROLTASK_PRIO,
                           CONTROLTASK_PRIO,
-                          (void*) &ControlTask_Stack[0],
+                          (void*)&ControlTask_Stack[0],
                           TASK_STACKSIZE,
-                          (void*) 0,
+                          (void*)0,
                           OS_TASK_OPT_STK_CHK);
 
     err = OSTaskCreateExt(VehicleTask,                            // Pointer to task code
@@ -338,9 +346,9 @@ void StartTask(void* pdata){
                           &VehicleTask_Stack[TASK_STACKSIZE - 1], // Pointer to top of task stack
                           VEHICLETASK_PRIO,
                           VEHICLETASK_PRIO,
-                          (void*) &VehicleTask_Stack[0],
+                          (void*)&VehicleTask_Stack[0],
                           TASK_STACKSIZE,
-                          (void*) 0,
+                          (void*)0,
                           OS_TASK_OPT_STK_CHK);
 
     printf("All Tasks and Kernel Objects generated!\n");

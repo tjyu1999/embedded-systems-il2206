@@ -100,36 +100,39 @@ OS_STK ExtraloadTask_Stack[TASK_STACKSIZE];
  */
 
 // Mailboxes
-OS_EVENT* Mbox_Throttle;
-OS_EVENT* Mbox_Velocity;
-OS_EVENT* Mbox_Brake;
-OS_EVENT* Mbox_Engine;
+OS_EVENT *Mbox_Throttle;
+OS_EVENT *Mbox_Velocity;
+OS_EVENT *Mbox_Brake;
+OS_EVENT *Mbox_Engine;
 
-OS_EVENT* Mbox_Utilization_Signal;
-OS_EVENT* Mbox_Timeout_Signal;
+OS_EVENT *Mbox_Utilization_Signal;
+OS_EVENT *Mbox_Timeout_Signal;
 
 // Semaphores
-OS_EVENT* vehicle_semaphore;
-OS_EVENT* control_semaphore;
-OS_EVENT* button_semaphore;
-OS_EVENT* switch_semaphore;
-OS_EVENT* watchdog_semaphore;
-OS_EVENT* detection_semaphore;
-OS_EVENT* extraload_semaphore;
+OS_EVENT *vehicle_semaphore;
+OS_EVENT *control_semaphore;
+OS_EVENT *button_semaphore;
+OS_EVENT *switch_semaphore;
+OS_EVENT *watchdog_semaphore;
+OS_EVENT *detection_semaphore;
+OS_EVENT *extraload_semaphore;
 
 // SW-Timer
-OS_TMR* vehicle_timer;
-OS_TMR* control_timer;
-OS_TMR* button_timer;
-OS_TMR* switch_timer;
-OS_TMR* watchdog_timer;
-OS_TMR* detection_timer;
-OS_TMR* extraload_timer;
+OS_TMR *vehicle_timer;
+OS_TMR *control_timer;
+OS_TMR *button_timer;
+OS_TMR *switch_timer;
+OS_TMR *watchdog_timer;
+OS_TMR *detection_timer;
+OS_TMR *extraload_timer;
 
 /*
  * Types
  */
-enum active{on = 2, off = 1};
+enum active{
+    on = 2,
+    off = 1
+};
 
 enum active CRUISE_CONTROL = off;
 enum active BRAKE_PEDAL = off;
@@ -156,14 +159,18 @@ int utilization[6];
 /*
  * Helper functions
  */
-int buttons_pressed(void) return ~IORD_ALTERA_AVALON_PIO_DATA(D2_PIO_KEYS4_BASE);
+int buttons_pressed(void){
+    return ~IORD_ALTERA_AVALON_PIO_DATA(D2_PIO_KEYS4_BASE);
+}
 
-int switches_pressed(void) return IORD_ALTERA_AVALON_PIO_DATA(DE2_PIO_TOGGLES18_BASE);
+int switches_pressed(void){
+    return IORD_ALTERA_AVALON_PIO_DATA(DE2_PIO_TOGGLES18_BASE);
+}
 
 /*
  * ISR for HW Timer
  */
-alt_u32 alarm_handler(void* context){
+alt_u32 alarm_handler(void *context){
     OSTmrSignal(); /* Signals a 'tick' to the SW timers */
     return delay;
 }
@@ -260,7 +267,9 @@ void show_position(INT16U position){
     }
 }
 
-void timer_callback(void* ptmr, void* callback_arg) OSSemPost((OS_EVENT*) callback_arg);
+void timer_callback(void *ptmr, void *callback_arg){
+    OSSemPost((OS_EVENT*)callback_arg);
+}
 
 /*
  * The task 'VehicleTask' is the model of the vehicle being simulated. It updates variables like
@@ -270,7 +279,7 @@ void timer_callback(void* ptmr, void* callback_arg) OSSemPost((OS_EVENT*) callba
  * Therefore, if left one, it will stably stop as the velocity converges to zero on a flat surface.
  * You can prove that easily via basic LTI systems methods.
  */
-void VehicleTask(void* pdata){
+void VehicleTask(void *pdata){
     // constants that should not be modified
     const unsigned int wind_factor = 1;
     const unsigned int brake_factor = 4;
@@ -278,7 +287,7 @@ void VehicleTask(void* pdata){
     
     // variables relevant to the model and its simulation on top of the RTOS
     INT8U err;
-    void* msg;
+    void *msg;
     INT8U* throttle;
     INT16S acceleration;
     INT16U position = 0;
@@ -289,20 +298,20 @@ void VehicleTask(void* pdata){
 
     while(1){
         OSSemPend(vehicle_semaphore, 0, &err);
-        err = OSMboxPost(Mbox_Velocity, (void*) &velocity);
+        err = OSMboxPost(Mbox_Velocity, (void*)&velocity);
 
         /* Non-blocking read of mailbox: 
            - message in mailbox: update throttle
            - no message:         use old throttle
          */
         msg = OSMboxPend(Mbox_Throttle, 1, &err); 
-        if(err == OS_NO_ERR) throttle = (INT8U*) msg;
+        if(err == OS_NO_ERR) throttle = (INT8U*)msg;
         /* Same for the brake signal that bypass the control law */
         msg = OSMboxPend(Mbox_Brake, 1, &err); 
-        if(err == OS_NO_ERR) brake_pedal = (enum active) msg;
+        if(err == OS_NO_ERR) brake_pedal = (enum active)msg;
         /* Same for the engine signal that bypass the control law */
         msg = OSMboxPend(Mbox_Engine, 1, &err); 
-        if(err == OS_NO_ERR) engine = (enum active) msg;
+        if(err == OS_NO_ERR) engine = (enum active)msg;
 
         // vehichle cannot effort more than 80 units of throttle
         if(*throttle > 80) *throttle = 80;
@@ -344,10 +353,10 @@ void VehicleTask(void* pdata){
  * on sensors and generates responses.
  */
 
-void ControlTask(void* pdata){
+void ControlTask(void *pdata){
     INT8U err;
     INT8U throttle = 20; /* Value between 0 and 80, which is interpreted as between 0.0V and 8.0V */
-    void* msg;
+    void *msg;
     INT16S* current_velocity;
     INT16S prev_velocity = 0;
     INT16S target_velocity = 0;
@@ -362,7 +371,7 @@ void ControlTask(void* pdata){
     while(1){
         OSSemPend(control_semaphore, 0, &err);
         msg = OSMboxPend(Mbox_Velocity, 0, &err);
-        current_velocity = (INT16S *) msg;
+        current_velocity = (INT16S*)msg;
 
         // Here you can use whatever technique or algorithm that you prefer to control
         // the velocity via the throttle. There are no right and wrong answer to this controller, so
@@ -377,7 +386,7 @@ void ControlTask(void* pdata){
         
         if(engine != ENGINE){
             engine = ENGINE;
-            err = OSMboxPost(Mbox_Engine, (void*) engine);
+            err = OSMboxPost(Mbox_Engine, (void*)engine);
         }
         
         throttle = 0;
@@ -421,7 +430,7 @@ void ControlTask(void* pdata){
         led_red = (TOP_GEAR == on ? LED_RED_1 : 0) | (ENGINE == on ? LED_RED_0 : 0);
         IOWR_ALTERA_AVALON_PIO_DATA(DE2_PIO_GREENLED9_BASE, led_green);
 
-        err = OSMboxPost(Mbox_Throttle, (void*) &throttle);
+        err = OSMboxPost(Mbox_Throttle, (void*)&throttle);
     }
 }
 
@@ -444,7 +453,7 @@ void ButtonIOTask(void* pdata){
         if(buttons & BRAKE_PEDAL_FLAG) BRAKE_PEDAL = on;
         else BRAKE_PEDAL = off;
         
-        if(BRAKE_PEDAL != prev_brake_pedal) err = OSMboxPost(Mbox_Brake, (void*) BRAKE_PEDAL);
+        if(BRAKE_PEDAL != prev_brake_pedal) err = OSMboxPost(Mbox_Brake, (void*)BRAKE_PEDAL);
 
         // gas pedal        
         if(buttons & GAS_PEDAL_FLAG) GAS_PEDAL = on;
@@ -452,7 +461,7 @@ void ButtonIOTask(void* pdata){
     }
 }
 
-void SwitchIOTask(void* pdata){
+void SwitchIOTask(void *pdata){
     INT8U err;
     int switches;
 
@@ -502,10 +511,10 @@ void WatchdogTask(void* pdata){
         OSSemPend(watchdog_semaphore, 0, &err);
         
         msg = OSMboxPend(Mbox_Utilization_Signal, 0, &err);
-        if((int) (int*) msg) printf("WARNING: Overload!!! (utilization)\n\n");
+        if((int)(int*)msg) printf("WARNING: Utilization overload!!!\n\n");
         
         msg = OSMboxPend(Mbox_Timeout_Signal, 5000, &err);
-        if(err == OS_ERR_TIMEOUT) printf("WARNING: Overload!!! (timeout)\n\n");
+        if(err == OS_ERR_TIMEOUT) printf("WARNING: Timeout overload!!!\n\n");
     }
 }
 
@@ -515,7 +524,7 @@ void DetectionTask(void* pdata){
     
     while(1){
         OSSemPend(detection_semaphore, 0, &err);
-        err = OSMboxPost(Mbox_Timeout_Signal, (void*) signal);
+        err = OSMboxPost(Mbox_Timeout_Signal, (void*)signal);
     }
 }
 
@@ -528,9 +537,9 @@ void ExtraloadTask(void* pdata){
         int signal = 0;
         
         for(int i = 0; i < 6; i++) total += utilization[i];
-        printf("### Utilization: %d%% ###\n\n", total);
+        printf("Utilization: %d%% ###\n\n", total);
         if(total > 100) signal = 1;
-        err = OSMboxPost(Mbox_Utilization_Signal, (void \*) signal);
+        err = OSMboxPost(Mbox_Utilization_Signal, (void*)signal);
     }
 }
 
@@ -540,7 +549,7 @@ void ExtraloadTask(void* pdata){
  */ 
 void StartTask(void* pdata){
     INT8U err;
-    void* context;
+    void *context;
     static alt_alarm alarm; /* Is needed for timer ISR function */
 
     /* Base resolution for SW timer : HW_TIMER_PERIOD ms */
@@ -555,12 +564,11 @@ void StartTask(void* pdata){
     /* 
      * Create and start Software Timer 
      */
-    
     vehicle_timer = OSTmrCreate(0,
                                 VEHICLE_PERIOD / HW_TIMER_PERIOD,
                                 OS_TMR_OPT_PERIODIC,
                                 timer_callback,
-                                (void*) vehicle_semaphore,
+                                (void*)vehicle_semaphore,
                                 NULL,
                                 &err);
     
@@ -568,7 +576,7 @@ void StartTask(void* pdata){
                                 CONTROL_PERIOD / HW_TIMER_PERIOD,
                                 OS_TMR_OPT_PERIODIC,
                                 timer_callback,
-                                (void*) control_semaphore,
+                                (void*)control_semaphore,
                                 NULL,
                                 &err);
     
@@ -576,7 +584,7 @@ void StartTask(void* pdata){
                                BUTTON_PERIOD / HW_TIMER_PERIOD,
                                OS_TMR_OPT_PERIODIC,
                                timer_callback,
-                               (void*) button_semaphore,
+                               (void*)button_semaphore,
                                NULL,
                                &err);
     
@@ -584,7 +592,7 @@ void StartTask(void* pdata){
                                SWITCH_PERIOD / HW_TIMER_PERIOD,
                                OS_TMR_OPT_PERIODIC,
                                timer_callback,
-                               (void*) switch_semaphore,
+                               (void*)switch_semaphore,
                                NULL,
                                &err);
     
@@ -592,7 +600,7 @@ void StartTask(void* pdata){
                                  WATCHDOG_PERIOD / HW_TIMER_PERIOD,
                                  OS_TMR_OPT_PERIODIC,
                                  timer_callback,
-                                 (void*) watchdog_semaphore,
+                                 (void*)watchdog_semaphore,
                                  NULL,
                                  &err);
     
@@ -600,7 +608,7 @@ void StartTask(void* pdata){
                                   DETECTION_PERIOD / HW_TIMER_PERIOD,
                                   OS_TMR_OPT_PERIODIC,
                                   timer_callback,
-                                  (void*) detection_semaphore,
+                                  (void*)detection_semaphore,
                                   NULL,
                                   &err);
     
@@ -608,7 +616,7 @@ void StartTask(void* pdata){
                                   EXTRALOAD_PERIOD / HW_TIMER_PERIODs,
                                   OS_TMR_OPT_PERIODIC,
                                   timer_callback,
-                                  (void*) extraload_semaphore,
+                                  (void*)extraload_semaphore,
                                   NULL,
                                   &err);
                                   
@@ -624,14 +632,13 @@ void StartTask(void* pdata){
      * Creation of Kernel Objects
      */
 
-    // Mailboxes
-    Mbox_Throttle = OSMboxCreate((void*) 0); /* Empty Mailbox - Throttle */
-    Mbox_Velocity = OSMboxCreate((void*) 0); /* Empty Mailbox - Velocity */
-    Mbox_Brake = OSMboxCreate((void*) 1);    /* Empty Mailbox - Brake */
-    Mbox_Engine = OSMboxCreate((void*) 1);   /* Empty Mailbox - Engine */
+    Mbox_Throttle = OSMboxCreate((void*)0); /* Empty Mailbox - Throttle */
+    Mbox_Velocity = OSMboxCreate((void*)0); /* Empty Mailbox - Velocity */
+    Mbox_Brake = OSMboxCreate((void*)1);    /* Empty Mailbox - Brake */
+    Mbox_Engine = OSMboxCreate((void*)1);   /* Empty Mailbox - Engine */
 
-    Mbox_Utilization_Signal = OSMboxCreate((void*) 0);
-    Mbox_Timeout_Signal = OSMboxCreate((void*) 0);
+    Mbox_Utilization_Signal = OSMboxCreate((void*)0);
+    Mbox_Timeout_Signal = OSMboxCreate((void*)0);
     
     vehicle_semaphore = OSSemCreate(1);
     control_semaphore = OSSemCreate(1);
@@ -649,15 +656,14 @@ void StartTask(void* pdata){
     /* 
      * Creating Tasks in the system 
      */
-
     err = OSTaskCreateExt(VehicleTask,                            // Pointer to task code
                           NULL,                                   // Pointer to argument that is passed to task
                           &VehicleTask_Stack[TASK_STACKSIZE - 1], // Pointer to top of task stack
                           VEHICLETASK_PRIO,
                           VEHICLETASK_PRIO,
-                          (void*) &VehicleTask_Stack[0],
+                          (void*)&VehicleTask_Stack[0],
                           TASK_STACKSIZE,
-                          (void*) 0,
+                          (void*)0,
                           OS_TASK_OPT_STK_CHK);
     
     err = OSTaskCreateExt(ControlTask,                            // Pointer to task code
@@ -665,9 +671,9 @@ void StartTask(void* pdata){
                           &ControlTask_Stack[TASK_STACKSIZE - 1], // Pointer to top of task stack
                           CONTROLTASK_PRIO,
                           CONTROLTASK_PRIO,
-                          (void*) &ControlTask_Stack[0],
+                          (void*)&ControlTask_Stack[0],
                           TASK_STACKSIZE,
-                          (void*) 0,
+                          (void*)0,
                           OS_TASK_OPT_STK_CHK);
         
     err = OSTaskCreateExt(ButtonIOTask,                            // Pointer to task code
@@ -675,9 +681,9 @@ void StartTask(void* pdata){
                           &ButtonIOTask_Stack[TASK_STACKSIZE - 1], // Pointer to top of task stack
                           BUTTONIOTASK_PRIO,
                           BUTTONIOTASK_PRIO,
-                          (void*) &ButtonIOTask_Stack[0],
+                          (void*)&ButtonIOTask_Stack[0],
                           TASK_STACKSIZE,
-                          (void*) 0,
+                          (void*)0,
                           OS_TASK_OPT_STK_CHK);
         
     err = OSTaskCreateExt(SwitchIOTask,                            // Pointer to task code
@@ -685,9 +691,9 @@ void StartTask(void* pdata){
                           &SwitchIOTask_Stack[TASK_STACKSIZE - 1], // Pointer to top of task stack
                           SWITCHIOTASK_PRIO,
                           SWITCHIOTASK_PRIO,
-                          (void*) &SwitchIOTask_Stack[0],
+                          (void*)&SwitchIOTask_Stack[0],
                           TASK_STACKSIZE,
-                          (void*) 0,
+                          (void*)0,
                           OS_TASK_OPT_STK_CHK);
         
     err = OSTaskCreateExt(WatchdogTask,                            // Pointer to task code
@@ -695,9 +701,9 @@ void StartTask(void* pdata){
                           &WatchdogTask_Stack[TASK_STACKSIZE - 1], // Pointer to top of task stack
                           WATCHDOGTASK_PRIO,
                           WATCHDOGTASK_PRIO,
-                          (void*) &WatchdogTask_Stack[0],
+                          (void*)&WatchdogTask_Stack[0],
                           TASK_STACKSIZE,
-                          (void*) 0,
+                          (void*)0,
                           OS_TASK_OPT_STK_CHK);
         
     err = OSTaskCreateExt(DetectionTask,                            // Pointer to task code
@@ -705,9 +711,9 @@ void StartTask(void* pdata){
                           &DetectionTask_Stack[TASK_STACKSIZE - 1], // Pointer to top of task stack
                           DETECTIONTASK_PRIO,
                           DETECTIONTASK_PRIO,
-                          (void*) &DetectionTask_Stack[0],
+                          (void*)&DetectionTask_Stack[0],
                           TASK_STACKSIZE,
-                          (void*) 0,
+                          (void*)0,
                           OS_TASK_OPT_STK_CHK);
         
     err = OSTaskCreateExt(ExtraloadTask,                            // Pointer to task code
@@ -715,9 +721,9 @@ void StartTask(void* pdata){
                           &ExtraloadTask_Stack[TASK_STACKSIZE - 1], // Pointer to top of task stack
                           EXTRALOADTASK_PRIO,
                           EXTRALOADTASK_PRIO,
-                          (void*) &ExtraloadTask_Stack[0],
+                          (void*)&ExtraloadTask_Stack[0],
                           TASK_STACKSIZE,
-                          (void*) 0,
+                          (void*)0,
                           OS_TASK_OPT_STK_CHK);
 
     printf("All Tasks and Kernel Objects generated!\n\n");
@@ -737,12 +743,12 @@ int main(void){
 
     OSTaskCreateExt(StartTask,                                    // Pointer to task code
                     NULL,                                         // Pointer to argument that is passed to task
-                    (void*) &StartTask_Stack[TASK_STACKSIZE - 1], // Pointer to top of task stack 
+                    (void*)&StartTask_Stack[TASK_STACKSIZE - 1],  // Pointer to top of task stack 
                     STARTTASK_PRIO,
                     STARTTASK_PRIO,
-                    (void*) &StartTask_Stack[0],
+                    (void*)&StartTask_Stack[0],
                     TASK_STACKSIZE,
-                    (void*) 0,  
+                    (void*)0,  
                     OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
 
     OSStart();

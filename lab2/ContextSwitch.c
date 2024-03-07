@@ -14,8 +14,8 @@ OS_STK task1_stk[TASK_STACKSIZE];
 OS_STK task2_stk[TASK_STACKSIZE];
 OS_STK stat_stk[TASK_STACKSIZE];
 
-OS_EVENT* semaphore1;
-OS_EVENT* semaphore2;
+OS_EVENT *semaphore1;
+OS_EVENT *semaphore2;
 
 /* Definition of Task Priorities */
 # define TASK1_PRIORITY      6 // highest priority
@@ -26,7 +26,7 @@ int prev_average = 0;
 int average = 0;
 int counter = 0;
 
-void printStackSize(char* name, INT8U prio){
+void printStackSize(char *name, INT8U prio){
     INT8U err;
     OS_STK_DATA stk_data;
     
@@ -40,7 +40,7 @@ void printStackSize(char* name, INT8U prio){
 }
 
 /* Prints a message and sleeps for given time interval */
-void task1(void* pdata){
+void task1(void *pdata){
     INT8U err;
     int state = 0;
     int ticks;
@@ -64,7 +64,7 @@ void task1(void* pdata){
         }
 
         printf("\n");
-        ticks = perf_get_section_time((void*) PERFORMANCE_COUNTER_BASE, 1);
+        ticks = perf_get_section_time((void*)PERFORMANCE_COUNTER_BASE, 1);
         average = (average * counter + ticks) / (counter + 1);
         counter++;
         if((float)ticks > average * 2.0){
@@ -78,7 +78,7 @@ void task1(void* pdata){
 }
 
 /* Prints a message and sleeps for given time interval */
-void task2(void* pdata){
+void task2(void *pdata){
     INT8U err;
     int state = 0;
 
@@ -100,7 +100,7 @@ void task2(void* pdata){
 }
 
 /* Printing Statistics */
-void statisticTask(void* pdata){
+void statisticTask(void *pdata){
     while(1){
         printStackSize("Task1", TASK1_PRIORITY);
         printStackSize("Task2", TASK2_PRIORITY);

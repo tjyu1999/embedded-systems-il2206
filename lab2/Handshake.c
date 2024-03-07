@@ -13,21 +13,21 @@ OS_STK task1_stk[TASK_STACKSIZE];
 OS_STK task2_stk[TASK_STACKSIZE];
 OS_STK stat_stk[TASK_STACKSIZE];
 
-OS_EVENT* semaphore1;
-OS_EVENT* semaphore2;
+OS_EVENT *semaphore1;
+OS_EVENT *semaphore2;
 
 /* Definition of Task Priorities */
 # define TASK1_PRIORITY      6 // highest priority
 # define TASK2_PRIORITY      7
 # define TASK_STAT_PRIORITY 12 // lowest priority
 
-void printStackSize(char* name, INT8U prio){
+void printStackSize(char *name, INT8U prio){
     INT8U err;
     OS_STK_DATA stk_data;
     
     err = OSTaskStkChk(prio, &stk_data);
     if(err == OS_NO_ERR){
-        if(DEBUG == 1) printf("%s (priority %d) - Used: %d; Free: %d\n", name, prio, (int) stk_data.OSUsed, (int) stk_data.OSFree);
+        if(DEBUG == 1) printf("%s (priority %d) - Used: %d; Free: %d\n", name, prio, (int)stk_data.OSUsed, (int)stk_data.OSFree);
     }
     else{
         if(DEBUG == 1) printf("Stack Check Error!\n");    
@@ -35,7 +35,7 @@ void printStackSize(char* name, INT8U prio){
 }
 
 /* Prints a message and sleeps for given time interval */
-void task1(void* pdata){
+void task1(void *pdata){
     INT8U err;
     int state = 0;
     
@@ -55,7 +55,7 @@ void task1(void* pdata){
 }
 
 /* Prints a message and sleeps for given time interval */
-void task2(void* pdata){
+void task2(void *pdata){
     INT8U err;
     int state = 0;
 
@@ -75,7 +75,7 @@ void task2(void* pdata){
 }
 
 /* Printing Statistics */
-void statisticTask(void* pdata){
+void statisticTask(void *pdata){
     while(1){
         printStackSize("Task1", TASK1_PRIORITY);
         printStackSize("Task2", TASK2_PRIORITY);

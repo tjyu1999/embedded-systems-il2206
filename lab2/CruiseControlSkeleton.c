@@ -97,7 +97,6 @@ INT32U led_red = 0;   // Red LEDs
 /*
  * Helper functions
  */
-
 int buttons_pressed(void){
     return ~IORD_ALTERA_AVALON_PIO_DATA(D2_PIO_KEYS4_BASE);
 }

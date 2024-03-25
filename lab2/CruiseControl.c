@@ -352,12 +352,11 @@ void VehicleTask(void *pdata){
  * The task 'ControlTask' is the main task of the application. It reacts
  * on sensors and generates responses.
  */
-
 void ControlTask(void *pdata){
     INT8U err;
     INT8U throttle = 20; /* Value between 0 and 80, which is interpreted as between 0.0V and 8.0V */
     void *msg;
-    INT16S* current_velocity;
+    INT16S *current_velocity;
     INT16S prev_velocity = 0;
     INT16S target_velocity = 0;
     INT16S deviation_velocity;
@@ -434,7 +433,7 @@ void ControlTask(void *pdata){
     }
 }
 
-void ButtonIOTask(void* pdata){
+void ButtonIOTask(void *pdata){
     INT8U err;
     int buttons;
     
@@ -503,9 +502,9 @@ void SwitchIOTask(void *pdata){
     }
 }
 
-void WatchdogTask(void* pdata){
+void WatchdogTask(void *pdata){
     INT8U err;
-    void* msg;
+    void *msg;
     
     while(1){
         OSSemPend(watchdog_semaphore, 0, &err);
@@ -518,7 +517,7 @@ void WatchdogTask(void* pdata){
     }
 }
 
-void DetectionTask(void* pdata){
+void DetectionTask(void *pdata){
     INT8U err;
     int signal = 1;
     
@@ -528,7 +527,7 @@ void DetectionTask(void* pdata){
     }
 }
 
-void ExtraloadTask(void* pdata){
+void ExtraloadTask(void *pdata){
     INT8U err;
     
     while(1){
@@ -547,7 +546,7 @@ void ExtraloadTask(void* pdata){
  * The task 'StartTask' creates all other tasks kernel objects and
  * deletes itself afterwards.
  */ 
-void StartTask(void* pdata){
+void StartTask(void *pdata){
     INT8U err;
     void *context;
     static alt_alarm alarm; /* Is needed for timer ISR function */
@@ -631,7 +630,6 @@ void StartTask(void* pdata){
     /*
      * Creation of Kernel Objects
      */
-
     Mbox_Throttle = OSMboxCreate((void*)0); /* Empty Mailbox - Throttle */
     Mbox_Velocity = OSMboxCreate((void*)0); /* Empty Mailbox - Velocity */
     Mbox_Brake = OSMboxCreate((void*)1);    /* Empty Mailbox - Brake */
